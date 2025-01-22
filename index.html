@@ -9,17 +9,18 @@
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf"></script>
     <style>
         body {
-            display: flex;
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
         }
         #sidebar {
             width: 30%;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            overflow-y: auto;
             background-color: #f8f9fa;
+            overflow-y: auto;
         }
         #map {
             width: 70%;
@@ -27,6 +28,10 @@
         }
         #search {
             margin-bottom: 20px;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
         .branch {
             padding: 15px;
@@ -53,50 +58,70 @@
         .branch a:hover {
             text-decoration: underline;
         }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            #sidebar {
+                width: 100%;
+                height: auto;
+                box-shadow: none;
+            }
+            #map {
+                width: 100%;
+                height: 50vh;
+            }
+        }
+        @media (max-width: 480px) {
+            #search {
+                font-size: 14px;
+            }
+            .branch {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="sidebar">
         <h2>Pharmacy Branches</h2>
-        <input id="search" type="text" placeholder="Search for branches..." style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px;">
+        <input id="search" type="text" placeholder="Search for branches...">
         <div id="branch-list"></div>
     </div>
     <div id="map"></div>
 
     <script>
-        mapboxgl.accessToken = 'pk.eyJ1IjoicGF2bHlkb3NzMTQzIiwiYSI6ImNtNjg5YzRyczAxNGYyaXMzZnI0bGs4YXUifQ.2sW84f1DmD4njKAti-Y1rg'; // Replace with your Mapbox API token
+        mapboxgl.accessToken = 'YOUR_MAPBOX_TOKEN'; // Replace with your Mapbox API token
 
-        // List of pharmacy branches with details
         const branches = [
             { name: "Branch 1", address: "123 Main Street, Tel Aviv", coordinates: [34.7836, 32.0853] },
             { name: "Branch 2", address: "456 King Road, Jerusalem", coordinates: [35.2137, 31.7683] },
             { name: "Branch 3", address: "789 Market Avenue, Haifa", coordinates: [34.7818, 32.0572] },
         ];
 
-        // Initialize the map
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v11',
-            center: [34.7836, 32.0853], // Default center
+            center: [34.7836, 32.0853],
             zoom: 10
         });
 
-        // Add branch markers to the map
         const markers = [];
         branches.forEach(branch => {
             const marker = new mapboxgl.Marker()
                 .setLngLat(branch.coordinates)
-                .setPopup(new mapboxgl.Popup().setText(branch.name)) // Popup with branch name
+                .setPopup(new mapboxgl.Popup().setText(branch.name))
                 .addTo(map);
             markers.push(marker);
         });
 
-        // Populate the sidebar list
         const branchList = document.getElementById('branch-list');
         const searchInput = document.getElementById('search');
 
         function updateBranchList(filter = "") {
-            branchList.innerHTML = ""; // Clear the list
+            branchList.innerHTML = "";
             branches
                 .filter(branch => branch.name.toLowerCase().includes(filter.toLowerCase()))
                 .forEach((branch, index) => {
@@ -110,7 +135,6 @@
                         </a>
                     `;
                     branchItem.addEventListener('click', () => {
-                        // Center map on the branch and open popup
                         map.flyTo({ center: branch.coordinates, zoom: 14 });
                         markers[index].getPopup().addTo(map);
                     });
@@ -120,26 +144,20 @@
 
         updateBranchList();
 
-        // Add search functionality
         searchInput.addEventListener('input', (e) => {
             updateBranchList(e.target.value);
         });
 
-        // Get user's location
         navigator.geolocation.getCurrentPosition(position => {
             const userLocation = [position.coords.longitude, position.coords.latitude];
-
-            // Add user location marker
             new mapboxgl.Marker({ color: "blue" })
                 .setLngLat(userLocation)
                 .setPopup(new mapboxgl.Popup().setText("Your Location"))
                 .addTo(map);
-
-            // Center map on user location
             map.flyTo({ center: userLocation, zoom: 12 });
         }, error => {
-            console.error("Error getting user's location:", error.message);
-            alert("Unable to fetch your location. Please enable location services.");
+            console.error("Error getting location:", error.message);
+            alert("Unable to fetch your location.");
         });
     </script>
 </body>
