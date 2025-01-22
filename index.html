@@ -120,7 +120,7 @@
                 branchItem.innerHTML = `
                     <h3>${branch.name}</h3>
                     <p>${branch.address}</p>
-                    <p>Distance: ${branch.distance ? branch.distance.toFixed(2) : '-'} km</p>
+                    <p>Distance: ${branch.distance.toFixed(2)} km</p>
                     <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
                 `;
                 branchItem.addEventListener('click', () => {
@@ -130,11 +130,6 @@
                 branchList.appendChild(branchItem);
             });
         }
-
-        searchInput.addEventListener('input', (e) => {
-            const filteredBranches = branches.filter(branch => branch.name.toLowerCase().includes(e.target.value.toLowerCase()));
-            updateBranchList(filteredBranches.map(branch => ({ ...branch, distance: 0 })));
-        });
 
         navigator.geolocation.getCurrentPosition(position => {
             const userLocation = [position.coords.longitude, position.coords.latitude];
@@ -174,6 +169,11 @@
             console.error("Location error:", error.message);
             alert("Unable to fetch location.");
             updateBranchList(branches.map(branch => ({ ...branch, distance: 0 })));
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            const filteredBranches = branches.filter(branch => branch.name.toLowerCase().includes(e.target.value.toLowerCase()));
+            updateBranchList(filteredBranches.map(branch => ({ ...branch, distance: 0 })));
         });
     </script>
 </body>
