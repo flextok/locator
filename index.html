@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pharmacies Locator</title>
+    <title>Pharmacy Branch Locator</title>
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf"></script>
     <style>
         body {
+            display: flex;
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
         }
         #sidebar {
             width: 30%;
@@ -27,11 +26,12 @@
             height: 100vh;
         }
         #search {
-            margin-bottom: 20px;
             width: 100%;
-            padding: 10px;
+            padding: 8px;
+            margin-bottom: 20px;
             border: 1px solid #ddd;
             border-radius: 4px;
+            font-size: 14px;
         }
         .branch {
             padding: 15px;
@@ -40,47 +40,27 @@
             border: 1px solid #ddd;
             border-radius: 8px;
             cursor: pointer;
+            transition: background 0.3s;
         }
         .branch:hover {
             background: #f1f1f1;
         }
         .branch h3 {
             margin: 5px 0;
+            font-size: 16px;
         }
         .branch p {
             margin: 5px 0;
             color: #555;
+            font-size: 14px;
         }
         .branch a {
             color: #007bff;
             text-decoration: none;
+            font-size: 13px;
         }
         .branch a:hover {
             text-decoration: underline;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-            #sidebar {
-                width: 100%;
-                height: auto;
-                box-shadow: none;
-            }
-            #map {
-                width: 100%;
-                height: 50vh;
-            }
-        }
-        @media (max-width: 480px) {
-            #search {
-                font-size: 14px;
-            }
-            .branch {
-                font-size: 14px;
-            }
         }
     </style>
 </head>
@@ -93,18 +73,18 @@
     <div id="map"></div>
 
     <script>
-        mapboxgl.accessToken = 'pk.eyJ1IjoicGF2bHlkb3NzMTQzIiwiYSI6ImNtNjg5YzRyczAxNGYyaXMzZnI0bGs4YXUifQ.2sW84f1DmD4njKAti-Y1rg'; // Replace with your Mapbox API token
+        mapboxgl.accessToken = 'pk.eyJ1IjoicGF2bHlkb3NzMTQzIiwiYSI6ImNtNjg5YzRyczAxNGYyaXMzZnI0bGs4YXUifQ.2sW84f1DmD4njKAti-Y1rg';
 
         const branches = [
-            { name: "Doss zaitoun", address: "tomanaby, Cairo", coordinates: [30.10318262908058, 31.314731610285097] },
-            { name: "Doss Tayaran", address: "456 King Road, Jerusalem", coordinates: [30.071264692161314, 31.324215781447396] },
-            { name: "Branch 3", address: "789 Market Avenue, Haifa", coordinates: [34.7818, 32.0572] },
+            { name: "Doss Zaitoun", address: "Tomanaby, Cairo", coordinates: [30.103183, 31.314732] },
+            { name: "Doss Tayaran", address: "101 El Tayaran St, El-Tawfik, Nasr City, Cairo Governorate 4451015", coordinates: [30.071265, 31.324216] },
+            { name: "Doss Almaza", address: "40 Almaza Street, Almazah, Heliopolis, Cairo Governorate 4461135", coordinates: [30.085298, 31.346090] },
         ];
 
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v11',
-            center: [34.7836, 32.0853],
+            center: [31.314732, 30.103183], // Default center
             zoom: 10
         });
 
@@ -121,7 +101,7 @@
         const searchInput = document.getElementById('search');
 
         function updateBranchList(filter = "") {
-            branchList.innerHTML = "";
+            branchList.innerHTML = ""; 
             branches
                 .filter(branch => branch.name.toLowerCase().includes(filter.toLowerCase()))
                 .forEach((branch, index) => {
@@ -130,9 +110,7 @@
                     branchItem.innerHTML = `
                         <h3>${branch.name}</h3>
                         <p>${branch.address}</p>
-                        <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">
-                            View on Google Maps
-                        </a>
+                        <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
                     `;
                     branchItem.addEventListener('click', () => {
                         map.flyTo({ center: branch.coordinates, zoom: 14 });
@@ -154,10 +132,21 @@
                 .setLngLat(userLocation)
                 .setPopup(new mapboxgl.Popup().setText("Your Location"))
                 .addTo(map);
-            map.flyTo({ center: userLocation, zoom: 12 });
+
+            const distances = branches.map(branch => ({
+                name: branch.name,
+                distance: turf.distance(
+                    turf.point(userLocation),
+                    turf.point(branch.coordinates)
+                ),
+                coordinates: branch.coordinates
+            }));
+
+            distances.sort((a, b) => a.distance - b.distance);
+            console.log("Nearest Branch:", distances[0]);
         }, error => {
-            console.error("Error getting location:", error.message);
-            alert("Unable to fetch your location.");
+            console.error("Location error:", error.message);
+            alert("Unable to fetch location.");
         });
     </script>
 </body>
