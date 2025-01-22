@@ -114,7 +114,7 @@
         const nearestBranchDiv = document.getElementById('nearest-branch');
 
         function updateBranchList(sortedBranches) {
-            branchList.innerHTML = ""; // Clear previous list
+            branchList.innerHTML = ""; // Clear previous list to avoid duplication
             sortedBranches.forEach((branch, index) => {
                 const branchItem = document.createElement('div');
                 branchItem.className = 'branch';
@@ -124,6 +124,7 @@
                     <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
                 `;
                 branchItem.addEventListener('click', () => {
+                    // Ensure only one popup per branch
                     map.flyTo({ center: branch.coordinates, zoom: 14 });
                     markers[index].getPopup().addTo(map);
                 });
@@ -160,20 +161,18 @@
             const nearestBranch = distances[0];
             nearestBranchDiv.innerHTML = `The nearest pharmacy: <strong>${nearestBranch.name}</strong>`;
 
-            // Fly to the nearest branch on the map
-            map.flyTo({ 
-                center: nearestBranch.coordinates, 
-                zoom: 14, 
-                essential: true 
-            }).on('moveend', () => {
-                // Show popup when zooming ends
-                new mapboxgl.Popup({ closeOnClick: false })
+            // Prepare the popup content
+            const popupContent = `
+                <strong>${nearestBranch.name}</strong><br>
+                ${branches.find(branch => branch.name === nearestBranch.name).address}<br>
+                <a href="https://www.google.com/maps?q=${nearestBranch.coordinates[1]},${nearestBranch.coordinates[0]}" target="_blank">View on Google Maps</a>
+            `;
+
+            // Fly to the nearest branch on the map and set the popup
+            map.flyTo({ center: nearestBranch.coordinates, zoom: 14 }).on('moveend', () => {
+                new mapboxgl.Popup()
                     .setLngLat(nearestBranch.coordinates)
-                    .setHTML(`
-                        <strong>${nearestBranch.name}</strong><br>
-                        ${branches.find(branch => branch.name === nearestBranch.name).address}<br>
-                        <a href="https://www.google.com/maps?q=${nearestBranch.coordinates[1]},${nearestBranch.coordinates[0]}" target="_blank">View on Google Maps</a>
-                    `)
+                    .setHTML(popupContent)
                     .addTo(map);
             });
 
