@@ -100,7 +100,11 @@
         branches.forEach(branch => {
             const marker = new mapboxgl.Marker()
                 .setLngLat(branch.coordinates)
-                .setPopup(new mapboxgl.Popup().setText(branch.name))
+                .setPopup(new mapboxgl.Popup().setHTML(`
+                    <strong>${branch.name}</strong><br>
+                    ${branch.address}<br>
+                    <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
+                `))
                 .addTo(map);
             markers.push(marker);
         });
