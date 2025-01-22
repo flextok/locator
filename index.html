@@ -153,7 +153,7 @@
 
             // Get the nearest branch and display it at the top of the list
             const nearestBranch = distances[0];
-            nearestBranchDiv.innerHTML = `The nearest pharmacy to your location is: <strong>${nearestBranch.name}</strong>`;
+            nearestBranchDiv.innerHTML = `The nearest pharmacy: <strong>${nearestBranch.name}</strong>`;
 
             // Fly to the nearest branch on the map
             map.flyTo({ center: nearestBranch.coordinates, zoom: 14 });
