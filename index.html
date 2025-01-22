@@ -73,7 +73,7 @@
 <body>
     <div id="sidebar">
         <h2>Products Locator</h2>
-        <input id="search" type="text" placeholder="Search for branches...">
+        <input id="search" type="text" placeholder="Search for pharmacies...">
         <div id="nearest-branch" class="nearest-branch"></div> <!-- Display nearest branch -->
         <div id="branch-list"></div>
     </div>
@@ -153,7 +153,7 @@
 
             // Get the nearest branch and display it at the top of the list
             const nearestBranch = distances[0];
-            nearestBranchDiv.innerHTML = `The nearest branch to your location is: <strong>${nearestBranch.name}</strong>`;
+            nearestBranchDiv.innerHTML = `The nearest pharmacy to your location is: <strong>${nearestBranch.name}</strong>`;
 
             // Update the branch list with the nearest branch at the top
             updateBranchList([branches.find(branch => branch.name === nearestBranch.name), ...branches.filter(branch => branch.name !== nearestBranch.name)]);
