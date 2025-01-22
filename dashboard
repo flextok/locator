@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Dashboard</title>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf"></script>
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+        }
+        #sidebar {
+            width: 35%;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #f8f9fa;
+            overflow-y: auto;
+        }
+        #map {
+            width: 65%;
+            height: 100%;
+        }
+        #search {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            text-align: left;
+        }
+        .branch {
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .branch:hover {
+            background: #f1f1f1;
+        }
+        .branch h3 {
+            margin: 5px 0;
+            font-size: 18px;
+        }
+        .branch p {
+            margin: 5px 0;
+            color: #555;
+            font-size: 15px;
+        }
+        .branch a {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .branch a:hover {
+            text-decoration: underline;
+        }
+        .nearest-branch {
+            font-weight: bold;
+            color: green;
+            margin-bottom: 20px;
+        }
+        /* Admin form styles */
+        #admin-form {
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            width: 100%;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h2>Products Locator</h2>
+
+        <!-- Admin Form for Adding New Branch -->
+        <div id="admin-form">
+            <h3>Add New Pharmacy</h3>
+            <input type="text" id="name" placeholder="Pharmacy Name" />
+            <input type="text" id="address" placeholder="Pharmacy Address" />
+            <input type="number" id="latitude" placeholder="Latitude" />
+            <input type="number" id="longitude" placeholder="Longitude" />
+            <button id="add-pharmacy">Add Pharmacy</button>
+        </div>
+
+        <input id="search" type="text" placeholder="Search for pharmacies...">
+        <div id="nearest-branch" class="nearest-branch"></div>
+        <div id="branch-list"></div>
+    </div>
+    <div id="map"></div>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoicGF2bHlkb3NzMTQzIiwiYSI6ImNtNjg5YzRyczAxNGYyaXMzZnI0bGs4YXUifQ.2sW84f1DmD4njKAti-Y1rg';
+
+        let branches = [
+            { name: "Doss Zaitoun", address: "Tomanaby, Cairo", coordinates: [31.314732, 30.103183] },
+            { name: "Doss Tayaran", address: "101 El Tayaran St, El-Tawfik, Nasr City, Cairo Governorate 4451015", coordinates: [31.324216, 30.071265] },
+            { name: "Doss Almaza", address: "40 Almaza Street, Almazah, Heliopolis, Cairo Governorate 4461135", coordinates: [31.346090, 30.085298] },
+        ];
+
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [31.314732, 30.103183], // Default center
+            zoom: 10
+        });
+
+        const markers = [];
+        const branchList = document.getElementById('branch-list');
+        const searchInput = document.getElementById('search');
+        const nearestBranchDiv = document.getElementById('nearest-branch');
+        const addPharmacyButton = document.getElementById('add-pharmacy');
+
+        // Function to update the branch list
+        function updateBranchList() {
+            branchList.innerHTML = "";
+            branches.forEach((branch, index) => {
+                const branchItem = document.createElement('div');
+                branchItem.className = 'branch';
+                branchItem.innerHTML = `
+                    <h3>${branch.name}</h3>
+                    <p>${branch.address}</p>
+                    <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
+                `;
+                branchItem.addEventListener('click', () => {
+                    map.flyTo({ center: branch.coordinates, zoom: 14 });
+                    markers[index].getPopup().addTo(map);
+                });
+                branchList.appendChild(branchItem);
+            });
+        }
+
+        // Function to add a new pharmacy
+        function addPharmacy() {
+            const name = document.getElementById('name').value;
+            const address = document.getElementById('address').value;
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const longitude = parseFloat(document.getElementById('longitude').value);
+
+            if (!name || !address || isNaN(latitude) || isNaN(longitude)) {
+                alert("Please fill in all fields correctly.");
+                return;
+            }
+
+            // Add the new pharmacy to the branches array
+            const newBranch = { name, address, coordinates: [longitude, latitude] };
+            branches.push(newBranch);
+
+            // Add marker to the map
+            const marker = new mapboxgl.Marker()
+                .setLngLat(newBranch.coordinates)
+                .setPopup(new mapboxgl.Popup().setHTML(`
+                    <strong>${newBranch.name}</strong><br>
+                    ${newBranch.address}<br>
+                    <a href="https://www.google.com/maps?q=${newBranch.coordinates[1]},${newBranch.coordinates[0]}" target="_blank">View on Google Maps</a>
+                `))
+                .addTo(map);
+            markers.push(marker);
+
+            // Update the branch list
+            updateBranchList();
+        }
+
+        // Add event listener to add pharmacy button
+        addPharmacyButton.addEventListener('click', addPharmacy);
+
+        // Function to filter the pharmacies by search input
+        searchInput.addEventListener('input', (e) => {
+            const filteredBranches = branches.filter(branch => branch.name.toLowerCase().includes(e.target.value.toLowerCase()));
+            updateBranchList(filteredBranches);
+        });
+
+        // Initialize the branch list
+        updateBranchList();
+    </script>
+</body>
+</html>
