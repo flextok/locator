@@ -161,7 +161,21 @@
             nearestBranchDiv.innerHTML = `The nearest pharmacy: <strong>${nearestBranch.name}</strong>`;
 
             // Fly to the nearest branch on the map
-            map.flyTo({ center: nearestBranch.coordinates, zoom: 14 });
+            map.flyTo({ 
+                center: nearestBranch.coordinates, 
+                zoom: 14, 
+                essential: true 
+            }).on('moveend', () => {
+                // Show popup when zooming ends
+                new mapboxgl.Popup({ closeOnClick: false })
+                    .setLngLat(nearestBranch.coordinates)
+                    .setHTML(`
+                        <strong>${nearestBranch.name}</strong><br>
+                        ${branches.find(branch => branch.name === nearestBranch.name).address}<br>
+                        <a href="https://www.google.com/maps?q=${nearestBranch.coordinates[1]},${nearestBranch.coordinates[0]}" target="_blank">View on Google Maps</a>
+                    `)
+                    .addTo(map);
+            });
 
             // Update the branch list with the nearest branch at the top
             updateBranchList([branches.find(branch => branch.name === nearestBranch.name), ...branches.filter(branch => branch.name !== nearestBranch.name)]);
