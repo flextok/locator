@@ -14,17 +14,21 @@
             padding: 0;
             font-family: Arial, sans-serif;
             height: 100vh;
+            overflow: hidden; /* Prevent scrollbars */
         }
         #sidebar {
             width: 35%;
+            max-width: 400px;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             background-color: #f8f9fa;
-            overflow-y: auto;
+            overflow-y: auto; /* Scrollable if content overflows */
+            box-sizing: border-box;
         }
         #map {
-            width: 65%;
+            flex-grow: 1;
             height: 100%;
+            min-width: 65%; /* Prevent the map from shrinking too much */
         }
         #search {
             width: 100%;
@@ -32,6 +36,7 @@
             margin-bottom: 20px;
             border: 1px solid #ddd;
             border-radius: 4px;
+            font-size: 16px;
         }
         .branch {
             padding: 15px;
@@ -67,6 +72,19 @@
             color: green;
             margin-bottom: 20px;
         }
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column; /* Stack sidebar and map vertically */
+            }
+            #sidebar {
+                width: 100%;
+                height: 40%; /* Adjust height on small screens */
+            }
+            #map {
+                width: 100%;
+                height: 60%; /* Adjust height for map */
+            }
+        }
     </style>
 </head>
 <body>
@@ -83,8 +101,8 @@
 
         const branches = [
             { name: "Doss Zaitoun", address: "Tomanaby, Cairo", coordinates: [31.314732, 30.103183] },
-            { name: "Doss Tayaran", address: "101 El Tayaran St, El-Tawfik, Nasr City, Cairo Governorate 4451015", coordinates: [31.324216, 30.071265] },
-            { name: "Doss Almaza", address: "40 Almaza Street, Almazah, Heliopolis, Cairo Governorate 4461135", coordinates: [31.346090, 30.085298] },
+            { name: "Doss Tayaran", address: "101 El Tayaran St, Nasr City, Cairo Governorate 4451015", coordinates: [31.324216, 30.071265] },
+            { name: "Doss Almaza", address: "40 Almaza Street, Heliopolis, Cairo Governorate 4461135", coordinates: [31.346090, 30.085298] },
         ];
 
         const map = new mapboxgl.Map({
@@ -94,34 +112,26 @@
             zoom: 10
         });
 
-        const popup = new mapboxgl.Popup(); // Single popup instance
         const markers = [];
+        branches.forEach(branch => {
+            const marker = new mapboxgl.Marker()
+                .setLngLat(branch.coordinates)
+                .setPopup(new mapboxgl.Popup().setHTML(`
+                    <strong>${branch.name}</strong><br>
+                    ${branch.address}<br>
+                    <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
+                `))
+                .addTo(map);
+            markers.push(marker);
+        });
+
         const branchList = document.getElementById('branch-list');
         const searchInput = document.getElementById('search');
         const nearestBranchDiv = document.getElementById('nearest-branch');
 
-        // Add markers and popups for each branch
-        branches.forEach((branch, index) => {
-            const marker = new mapboxgl.Marker()
-                .setLngLat(branch.coordinates)
-                .addTo(map);
-            markers.push(marker);
-
-            marker.getElement().addEventListener('click', () => {
-                popup.setLngLat(branch.coordinates)
-                    .setHTML(`
-                        <strong>${branch.name}</strong><br>
-                        ${branch.address}<br>
-                        <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
-                    `)
-                    .addTo(map);
-                map.flyTo({ center: branch.coordinates, zoom: 14 });
-            });
-        });
-
         function updateBranchList(sortedBranches) {
             branchList.innerHTML = "";
-            sortedBranches.forEach(branch => {
+            sortedBranches.forEach((branch, index) => {
                 const branchItem = document.createElement('div');
                 branchItem.className = 'branch';
                 branchItem.innerHTML = `
@@ -130,22 +140,15 @@
                     <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
                 `;
                 branchItem.addEventListener('click', () => {
-                    popup.setLngLat(branch.coordinates)
-                        .setHTML(`
-                            <strong>${branch.name}</strong><br>
-                            ${branch.address}<br>
-                            <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
-                        `)
-                        .addTo(map);
                     map.flyTo({ center: branch.coordinates, zoom: 14 });
+                    markers[index].getPopup().addTo(map);
                 });
                 branchList.appendChild(branchItem);
             });
         }
 
         searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const filteredBranches = branches.filter(branch => branch.name.toLowerCase().includes(query));
+            const filteredBranches = branches.filter(branch => branch.name.toLowerCase().includes(e.target.value.toLowerCase()));
             updateBranchList(filteredBranches);
         });
 
@@ -158,30 +161,38 @@
 
             const distances = branches.map(branch => ({
                 name: branch.name,
-                distance: turf.distance(turf.point(userLocation), turf.point(branch.coordinates)),
+                distance: turf.distance(
+                    turf.point(userLocation),
+                    turf.point(branch.coordinates)
+                ),
                 coordinates: branch.coordinates
             }));
 
             distances.sort((a, b) => a.distance - b.distance);
             const nearestBranch = distances[0];
+
             nearestBranchDiv.innerHTML = `The nearest pharmacy: <strong>${nearestBranch.name}</strong>`;
-            map.flyTo({ center: nearestBranch.coordinates, zoom: 14 });
 
-            popup.setLngLat(nearestBranch.coordinates)
-                .setHTML(`
-                    <strong>${nearestBranch.name}</strong><br>
-                    ${branches.find(branch => branch.name === nearestBranch.name).address}<br>
-                    <a href="https://www.google.com/maps?q=${nearestBranch.coordinates[1]},${nearestBranch.coordinates[0]}" target="_blank">View on Google Maps</a>
-                `)
-                .addTo(map);
+            const popupContent = `
+                <strong>${nearestBranch.name}</strong><br>
+                ${branches.find(branch => branch.name === nearestBranch.name).address}<br>
+                <a href="https://www.google.com/maps?q=${nearestBranch.coordinates[1]},${nearestBranch.coordinates[0]}" target="_blank">View on Google Maps</a>
+            `;
 
-            updateBranchList(branches);
-        }, () => {
-            alert("Location access denied. Unable to find the nearest branch.");
-            updateBranchList(branches);
+            map.flyTo({ center: nearestBranch.coordinates, zoom: 14 }).on('moveend', () => {
+                new mapboxgl.Popup()
+                    .setLngLat(nearestBranch.coordinates)
+                    .setHTML(popupContent)
+                    .addTo(map);
+            });
+
+            updateBranchList([branches.find(branch => branch.name === nearestBranch.name), ...branches.filter(branch => branch.name !== nearestBranch.name)]);
+
+        }, error => {
+            console.error("Location error:", error.message);
+            alert("Unable to fetch location.");
         });
 
-        // Initialize the branch list
         updateBranchList(branches);
     </script>
 </body>
