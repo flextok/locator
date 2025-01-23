@@ -83,24 +83,23 @@
         mapboxgl.accessToken = 'pk.eyJ1IjoicGF2bHlkb3NzMTQzIiwiYSI6ImNtNjg5YzRyczAxNGYyaXMzZnI0bGs4YXUifQ.2sW84f1DmD4njKAti-Y1rg';
 
         const branches = [
-           const branches = [
-    { name: "Doss Zaitoun", address: "Tomanaby, Cairo", coordinates: [31.314732, 30.103183] },
-    { name: "Doss Tayaran", address: "101 El Tayaran St, El-Tawfik, Nasr City, Cairo Governorate 4451015", coordinates: [31.324216, 30.071265] },
-    { name: "Doss Almaza", address: "40 Almaza Street, Almazah, Heliopolis, Cairo Governorate 4461135", coordinates: [31.346090, 30.085298] },
-    { name: "Doss Al Daher", address: "4 Mahmoud Fahmy Al-Mamari, Al-Sakakini, Al-daher District, Cairo Governorate", coordinates: [31.265671615903713, 30.06258206699227] },
-    { name: "Doss Al Shams", address: "97 Mohamed Farid, Airport, Qesm El-Nozha, Cairo Governorate 4470352", coordinates: [31.34333047357388, 30.114331202940114] },
-    { name: "Doss Hadaek Al Koba", address: "88 Ahmed Zaki, Private, Hadayek El-Kobba Department, Cairo Governorate 4381605", coordinates: [31.280367447413482, 30.079240742949747] },
-    { name: "Doss Hamamat Al Koba", address: "20-29 Dar Al-Salaam, Al-Zaytoun Al-Sharqiya, Al-Zaytoun District, Cairo Governorate 4520121", coordinates: [31.297306868633168, 30.08972795892963] },
-    { name: "Doss Al Mahkama", address: "483G+C72, Atef Bey Barakat, Al-Bustan, Heliopolis District, Cairo Governorate 4460153", coordinates: [31.325569773574145, 30.103702386163196] },
-    { name: "Doss Maryland", address: "23 El-Higaz, Al-Montazah, Heliopolis District, Cairo Governorate 4460223", coordinates: [31.320195477569477, 30.097117774773082] },
-    { name: "Doss Sheraton", address: "24 Sayed Zakareya, Sheraton Airport, Qesm El-Nozha, Cairo Governorate", coordinates: [31.3733887735741, 30.102984622754747] },
-    { name: "Doss Saray Al Koba", address: "17 Bani Tai, Al-Zaytoun Al-Sharqiya, Qism Al-Zaytoun, Cairo Governorate", coordinates: [31.305036860374365, 30.09326805006896] },
-    { name: "Doss Nasr City", address: "Makram Ebeid Street, Sixth District, Nasr City Department, Cairo Governorate", coordinates: [31.345862473575238, 30.058500696785725] },
-    { name: "Doss New Cairo", address: "3 Skies Plaza South 90 street, New Cairo", coordinates: [31.495873973575932, 30.026518515330608] },
-    { name: "Dair Elmalak", address: "23 Sharae Zarafet Al-Gabal, near Dair El-Malak Church", coordinates: [31.271663026998677, 30.080960692622618] },
-    { name: "Bait Al Aiz", address: "35 Ibn Al-Hakam Square, Tomanaby, Zaitoun", coordinates: [31.319862184428445, 30.11031524289574] },
-    { name: "Doss Diplomats", address: "New Cairo 1, Cairo Governorate", coordinates: [31.440293998128208, 29.993664906918173] }
-];
+            { name: "Doss Zaitoun", address: "Tomanaby, Cairo", coordinates: [31.314732, 30.103183] },
+            { name: "Doss Tayaran", address: "101 El Tayaran St, El-Tawfik, Nasr City, Cairo Governorate 4451015", coordinates: [31.324216, 30.071265] },
+            { name: "Doss Almaza", address: "40 Almaza Street, Almazah, Heliopolis, Cairo Governorate 4461135", coordinates: [31.346090, 30.085298] },
+            { name: "Doss Al Daher", address: "4 Mahmoud Fahmy Al-Mamari, Al-Sakakini, Al-daher District, Cairo Governorate", coordinates: [31.265671615903713, 30.06258206699227] },
+            { name: "Doss Al Shams", address: "97 Mohamed Farid, Airport, Qesm El-Nozha, Cairo Governorate 4470352", coordinates: [31.34333047357388, 30.114331202940114] },
+            { name: "Doss Hadaek Al Koba", address: "88 Ahmed Zaki, Private, Hadayek El-Kobba Department, Cairo Governorate 4381605", coordinates: [31.280367447413482, 30.079240742949747] },
+            { name: "Doss Hamamat Al Koba", address: "20-29 Dar Al-Salaam, Al-Zaytoun Al-Sharqiya, Al-Zaytoun District, Cairo Governorate 4520121", coordinates: [31.297306868633168, 30.08972795892963] },
+            { name: "Doss Al Mahkama", address: "483G+C72, Atef Bey Barakat, Al-Bustan, Heliopolis District, Cairo Governorate 4460153", coordinates: [31.325569773574145, 30.103702386163196] },
+            { name: "Doss Maryland", address: "23 El-Higaz, Al-Montazah, Heliopolis District, Cairo Governorate 4460223", coordinates: [31.320195477569477, 30.097117774773082] },
+            { name: "Doss Sheraton", address: "24 Sayed Zakareya, Sheraton Airport, Qesm El-Nozha, Cairo Governorate", coordinates: [31.3733887735741, 30.102984622754747] },
+            { name: "Doss Saray Al Koba", address: "17 Bani Tai, Al-Zaytoun Al-Sharqiya, Qism Al-Zaytoun, Cairo Governorate", coordinates: [31.305036860374365, 30.09326805006896] },
+            { name: "Doss Nasr City", address: "Makram Ebeid Street, Sixth District, Nasr City Department, Cairo Governorate", coordinates: [31.345862473575238, 30.058500696785725] },
+            { name: "Doss New Cairo", address: "3 Skies Plaza South 90 street, New Cairo", coordinates: [31.495873973575932, 30.026518515330608] },
+            { name: "Dair Elmalak", address: "23 Sharae Zarafet Al-Gabal, near Dair El-Malak Church", coordinates: [31.271663026998677, 30.080960692622618] },
+            { name: "Bait Al Aiz", address: "35 Ibn Al-Hakam Square, Tomanaby, Zaitoun", coordinates: [31.319862184428445, 30.11031524289574] },
+            { name: "Doss Diplomats", address: "New Cairo 1, Cairo Governorate", coordinates: [31.440293998128208, 29.993664906918173] }
+        ];
 
         const map = new mapboxgl.Map({
             container: 'map',
