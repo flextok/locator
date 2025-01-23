@@ -9,22 +9,18 @@
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf"></script>
     <style>
         body {
-            display: flex;
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
-            height: 100vh;
         }
-        #sidebar {
-            width: 35%;
+        #map {
+            width: 100%;
+            height: 70vh; /* Map takes 70% of the viewport height */
+        }
+        #content {
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             background-color: #f8f9fa;
-            overflow-y: auto;
-        }
-        #map {
-            width: 65%;
-            height: 100%;
         }
         #search {
             width: 100%;
@@ -34,9 +30,14 @@
             border-radius: 4px;
             font-size: 16px;
         }
+        #branch-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
         .branch {
+            flex: 1 1 calc(50% - 15px); /* Each branch takes 50% of the row with spacing */
             padding: 15px;
-            margin-bottom: 15px;
             background: #fff;
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -71,18 +72,17 @@
     </style>
 </head>
 <body>
-    <div id="sidebar">
-        <h2>Products Locator</h2>
+    <div id="map"></div>
+    <div id="content">
         <input id="search" type="text" placeholder="Search for pharmacies...">
         <div id="nearest-branch" class="nearest-branch"></div>
         <div id="branch-list"></div>
     </div>
-    <div id="map"></div>
 
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoicGF2bHlkb3NzMTQzIiwiYSI6ImNtNjg5YzRyczAxNGYyaXMzZnI0bGs4YXUifQ.2sW84f1DmD4njKAti-Y1rg';
 
-       const branches = [
+        const branches = [
    { name: "Doss Zaitoun", address: "Tomanaby, Cairo", coordinates: [31.314732, 30.103183] },
             { name: "Doss Tayaran", address: "101 El Tayaran St, El-Tawfik, Nasr City, Cairo Governorate 4451015", coordinates: [31.324216, 30.071265] },
             { name: "Doss Almaza", address: "40 Almaza Street, Almazah, Heliopolis, Cairo Governorate 4461135", coordinates: [31.346090, 30.085298] },
@@ -179,7 +179,6 @@
   { name: "صيدليه هديل", address: "ش ذهني الضاهر", coordinates: [31.25963310156415, 30.065265893833285] },
   { name: "سوتير", address: "شبرا - مصر", coordinates: [31.247359547591525, 30.083317529614053] }
 ];
-
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v11',
