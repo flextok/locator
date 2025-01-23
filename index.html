@@ -3,24 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Products Locator</title>
+    <title>Products Locator</title
+
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf"></script>
     <style>
         body {
+            display: flex;
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
+            height: 100vh;
         }
-        #map {
-            width: 100%;
-            height: 70vh; /* Map takes 70% of the viewport height */
-        }
-        #content {
+        #sidebar {
+            width: 35%;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             background-color: #f8f9fa;
+            overflow-y: auto;
+        }
+        #map {
+            width: 65%;
+            height: 100%;
         }
         #search {
             width: 100%;
@@ -30,14 +35,9 @@
             border-radius: 4px;
             font-size: 16px;
         }
-        #branch-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
         .branch {
-            flex: 1 1 calc(50% - 15px); /* Each branch takes 50% of the row with spacing */
             padding: 15px;
+            margin-bottom: 15px;
             background: #fff;
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -72,12 +72,13 @@
     </style>
 </head>
 <body>
-    <div id="map"></div>
-    <div id="content">
+    <div id="sidebar">
+        <h2>Products Locator</h2>
         <input id="search" type="text" placeholder="Search for pharmacies...">
         <div id="nearest-branch" class="nearest-branch"></div>
         <div id="branch-list"></div>
     </div>
+    <div id="map"></div>
 
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoicGF2bHlkb3NzMTQzIiwiYSI6ImNtNjg5YzRyczAxNGYyaXMzZnI0bGs4YXUifQ.2sW84f1DmD4njKAti-Y1rg';
@@ -98,7 +99,7 @@
             { name: "Doss New Cairo", address: "3 Skies Plaza South 90 street, New Cairo", coordinates: [31.495873973575932, 30.026518515330608] },
             { name: "Dair Elmalak", address: "23 Sharae Zarafet Al-Gabal, near Dair El-Malak Church", coordinates: [31.271663026998677, 30.080960692622618] },
             { name: "Bait Al Aiz", address: "35 Ibn Al-Hakam Square, Tomanaby, Zaitoun", coordinates: [31.319862184428445, 30.11031524289574] },
-            { name: "Doss Diplomats", address: "New Cairo 1, Cairo Governorate", coordinates: [31.440293998128208, 29.993664906918173] },
+            { name: "Doss Diplomats", address: "New Cairo 1, Cairo Governorate", coordinates: [31.440293998128208, 29.993664906918173] }
  { name: "صيدليات العماوي", address: "طريق الفيلات قبل طريق الدائري الاقليمي - بنها", coordinates: [31.17285019679927, 30.47115365374199] },
   { name: "صيدليات هانى عبد الظاهر", address: "برج كارفور نازله كوبرى عرابى", coordinates: [31.249776916846326, 30.122845497161443] },
   { name: "صيدليه محمد الشريف", address: "حوض العمده امام سنتر عبدالله شبرا الخيمة", coordinates: [31.243639819930525, 30.134480118939983] },
@@ -179,46 +180,97 @@
   { name: "صيدليه هديل", address: "ش ذهني الضاهر", coordinates: [31.25963310156415, 30.065265893833285] },
   { name: "سوتير", address: "شبرا - مصر", coordinates: [31.247359547591525, 30.083317529614053] }
 ];
+
+
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v11',
             center: [31.314732, 30.103183],
-            zoom: 12
+            zoom: 10
         });
 
-        let activePopup = null;
-
-        const branchList = document.getElementById('branch-list');
-
-        branches.forEach((branch, index) => {
-            // Create markers
+        const markers = [];
+        branches.forEach(branch => {
             const marker = new mapboxgl.Marker()
                 .setLngLat(branch.coordinates)
+                .setPopup(new mapboxgl.Popup().setHTML(
+                    <strong>${branch.name}</strong><br>
+                    ${branch.address}<br>
+                    <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
+                ))
+                .addTo(map);
+            markers.push(marker);
+        });
+
+        const branchList = document.getElementById('branch-list');
+        const searchInput = document.getElementById('search');
+        const nearestBranchDiv = document.getElementById('nearest-branch');
+
+        function updateBranchList(sortedBranches) {
+            branchList.innerHTML = "";
+            sortedBranches.forEach((branch, index) => {
+                const branchItem = document.createElement('div');
+                branchItem.className = 'branch';
+                branchItem.innerHTML = 
+                    <h3>${branch.name}</h3>
+                    <p>${branch.address}</p>
+                    <p>Distance: ${branch.distance.toFixed(2)} km</p>
+                    <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
+                ;
+                branchItem.addEventListener('click', () => {
+                    map.flyTo({ center: branch.coordinates, zoom: 14 });
+                    const popup = markers[index].getPopup();
+                    if (popup) {
+                        popup.addTo(map);
+                    }
+                });
+                branchList.appendChild(branchItem);
+            });
+        }
+
+        navigator.geolocation.getCurrentPosition(position => {
+            const userLocation = [position.coords.longitude, position.coords.latitude];
+
+            new mapboxgl.Marker({ color: "blue" })
+                .setLngLat(userLocation)
+                .setPopup(new mapboxgl.Popup().setText("Your Location"))
                 .addTo(map);
 
-            // Create popups
-            const popup = new mapboxgl.Popup({ offset: 25 })
-                .setHTML(`<h3>${branch.name}</h3><p>${branch.address}</p>`);
+            const branchesWithDistances = branches.map(branch => ({
+                ...branch,
+                distance: turf.distance(
+                    turf.point(userLocation),
+                    turf.point(branch.coordinates)
+                )
+            }));
 
-            marker.getElement().addEventListener('click', () => {
-                if (activePopup) activePopup.remove();
-                popup.addTo(map);
-                activePopup = popup;
-                map.flyTo({ center: branch.coordinates, zoom: 14 });
+            branchesWithDistances.sort((a, b) => a.distance - b.distance);
+
+            const nearestBranch = branchesWithDistances[0];
+            nearestBranchDiv.innerHTML = The nearest pharmacy: <strong>${nearestBranch.name}</strong>;
+
+            const popupContent = 
+                <strong>${nearestBranch.name}</strong><br>
+                ${nearestBranch.address}<br>
+                <a href="https://www.google.com/maps?q=${nearestBranch.coordinates[1]},${nearestBranch.coordinates[0]}" target="_blank">View on Google Maps</a>
+            ;
+            map.flyTo({ center: nearestBranch.coordinates, zoom: 14 }).on('moveend', () => {
+                new mapboxgl.Popup()
+                    .setLngLat(nearestBranch.coordinates)
+                    .setHTML(popupContent)
+                    .addTo(map);
             });
 
-            // Populate the branch list
-            const branchItem = document.createElement('div');
-            branchItem.className = 'branch';
-            branchItem.innerHTML = `<h3>${branch.name}</h3><p>${branch.address}</p>`;
-            branchItem.addEventListener('click', () => {
-                if (activePopup) activePopup.remove();
-                popup.addTo(map);
-                activePopup = popup;
-                map.flyTo({ center: branch.coordinates, zoom: 14 });
-            });
+            updateBranchList(branchesWithDistances);
+        }, error => {
+            console.error("Location error:", error.message);
+            alert("Unable to fetch location.");
+            updateBranchList(branches.map(branch => ({ ...branch, distance: 0 })));
+        });
 
-            branchList.appendChild(branchItem);
+        searchInput.addEventListener('input', (e) => {
+            const filteredBranches = branches.filter(branch => branch.name.toLowerCase().includes(e.target.value.toLowerCase()));
+            updateBranchList(filteredBranches.map(branch => ({ ...branch, distance: 0 })));
         });
     </script>
 </body>
