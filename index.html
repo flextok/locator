@@ -109,87 +109,37 @@
         });
 
         const markers = [];
-        branches.forEach(branch => {
+        branches.forEach((branch, index) => {
             const marker = new mapboxgl.Marker()
                 .setLngLat(branch.coordinates)
-                .setPopup(new mapboxgl.Popup().setHTML(
+                .setPopup(new mapboxgl.Popup().setHTML(`
                     <strong>${branch.name}</strong><br>
                     ${branch.address}<br>
                     <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
-                ))
+                `))
                 .addTo(map);
+
             markers.push(marker);
         });
 
         const branchList = document.getElementById('branch-list');
-        const searchInput = document.getElementById('search');
-        const nearestBranchDiv = document.getElementById('nearest-branch');
 
-        function updateBranchList(sortedBranches) {
-            branchList.innerHTML = "";
-            sortedBranches.forEach((branch, index) => {
-                const branchItem = document.createElement('div');
-                branchItem.className = 'branch';
-                branchItem.innerHTML = 
-                    <h3>${branch.name}</h3>
-                    <p>${branch.address}</p>
-                    <p>Distance: ${branch.distance.toFixed(2)} km</p>
-                    <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
-                ;
-                branchItem.addEventListener('click', () => {
-                    map.flyTo({ center: branch.coordinates, zoom: 14 });
-                    const popup = markers[index].getPopup();
-                    if (popup) {
-                        popup.addTo(map);
-                    }
-                });
-                branchList.appendChild(branchItem);
+        branches.forEach((branch, index) => {
+            const branchItem = document.createElement('div');
+            branchItem.className = 'branch';
+            branchItem.innerHTML = `
+                <h3>${branch.name}</h3>
+                <p>${branch.address}</p>
+                <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
+            `;
+            branchItem.addEventListener('click', () => {
+                map.flyTo({ center: branch.coordinates, zoom: 14 });
+                const popup = markers[index].getPopup();
+                if (popup) {
+                    popup.addTo(map);
+                }
             });
-        }
-
-        navigator.geolocation.getCurrentPosition(position => {
-            const userLocation = [position.coords.longitude, position.coords.latitude];
-
-            new mapboxgl.Marker({ color: "blue" })
-                .setLngLat(userLocation)
-                .setPopup(new mapboxgl.Popup().setText("Your Location"))
-                .addTo(map);
-
-            const branchesWithDistances = branches.map(branch => ({
-                ...branch,
-                distance: turf.distance(
-                    turf.point(userLocation),
-                    turf.point(branch.coordinates)
-                )
-            }));
-
-            branchesWithDistances.sort((a, b) => a.distance - b.distance);
-
-            const nearestBranch = branchesWithDistances[0];
-            nearestBranchDiv.innerHTML = The nearest pharmacy: <strong>${nearestBranch.name}</strong>;
-
-            const popupContent = 
-                <strong>${nearestBranch.name}</strong><br>
-                ${nearestBranch.address}<br>
-                <a href="https://www.google.com/maps?q=${nearestBranch.coordinates[1]},${nearestBranch.coordinates[0]}" target="_blank">View on Google Maps</a>
-            ;
-            map.flyTo({ center: nearestBranch.coordinates, zoom: 14 }).on('moveend', () => {
-                new mapboxgl.Popup()
-                    .setLngLat(nearestBranch.coordinates)
-                    .setHTML(popupContent)
-                    .addTo(map);
-            });
-
-            updateBranchList(branchesWithDistances);
-        }, error => {
-            console.error("Location error:", error.message);
-            alert("Unable to fetch location.");
-            updateBranchList(branches.map(branch => ({ ...branch, distance: 0 })));
-        });
-
-        searchInput.addEventListener('input', (e) => {
-            const filteredBranches = branches.filter(branch => branch.name.toLowerCase().includes(e.target.value.toLowerCase()));
-            updateBranchList(filteredBranches.map(branch => ({ ...branch, distance: 0 })));
+            branchList.appendChild(branchItem);
         });
     </script>
 </body>
