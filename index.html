@@ -109,7 +109,7 @@
         });
 
         const markers = [];
-        branches.forEach(branch => {
+        branches.forEach((branch, index) => {
             const marker = new mapboxgl.Marker()
                 .setLngLat(branch.coordinates)
                 .setPopup(new mapboxgl.Popup().setHTML(`
@@ -118,6 +118,7 @@
                     <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
                 `))
                 .addTo(map);
+
             markers.push(marker);
         });
 
@@ -133,7 +134,7 @@
                 branchItem.innerHTML = `
                     <h3>${branch.name}</h3>
                     <p>${branch.address}</p>
-                    <p>Distance: ${branch.distance.toFixed(2)} km</p>
+                    <p>Distance: ${branch.distance ? branch.distance.toFixed(2) + ' km' : 'Unknown'}</p>
                     <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
                 `;
                 branchItem.addEventListener('click', () => {
@@ -165,22 +166,9 @@
             const nearestBranch = branchesWithDistances[0];
             nearestBranchDiv.innerHTML = `The nearest pharmacy: <strong>${nearestBranch.name}</strong>`;
 
-            const popupContent = `
-                <strong>${nearestBranch.name}</strong><br>
-                ${nearestBranch.address}<br>
-                <a href="https://www.google.com/maps?q=${nearestBranch.coordinates[1]},${nearestBranch.coordinates[0]}" target="_blank">View on Google Maps</a>
-            `;
-            map.flyTo({ center: nearestBranch.coordinates, zoom: 14 }).on('moveend', () => {
-                new mapboxgl.Popup()
-                    .setLngLat(nearestBranch.coordinates)
-                    .setHTML(popupContent)
-                    .addTo(map);
-            });
-
             updateBranchList(branchesWithDistances);
         }, error => {
-            console.error("Location error:", error.message);
-            alert("Unable to fetch location.");
+            console.error("Error getting location:", error.message);
             updateBranchList(branches.map(branch => ({ ...branch, distance: 0 })));
         });
 
