@@ -127,7 +127,7 @@
 
         function updateBranchList(sortedBranches) {
             branchList.innerHTML = "";
-            sortedBranches.forEach((branch, index) => {
+            sortedBranches.forEach((branch) => {
                 const branchItem = document.createElement('div');
                 branchItem.className = 'branch';
                 branchItem.innerHTML = `
@@ -136,4 +136,7 @@
                     <p>Distance: ${branch.distance.toFixed(2)} km</p>
                     <a href="https://www.google.com/maps?q=${branch.coordinates[1]},${branch.coordinates[0]}" target="_blank">View on Google Maps</a>
                 `;
-                branchItem.addEventListener('click', ()
+                branchItem.addEventListener('click', () => {
+                    map.flyTo({ center: branch.coordinates, zoom: 14 });
+                    const popupContent = `
+                        <strong>${branch.name}
